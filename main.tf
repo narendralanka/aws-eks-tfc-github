@@ -3,10 +3,10 @@ terraform {
 
   backend "remote" {
     hostname     = "app.terraform.io"
-    organization = "YOUR_TFC_ORG"      # <<< change
+    organization = "narendra-devops-org"      # <<< change
 
     workspaces {
-      name = "eks-github-actions"      # <<< change
+      name = "aws-eks-tfc-github"      # <<< change
     }
   }
 
@@ -36,3 +36,4 @@ module "eks" {
   vpc_id       = module.vpc.vpc_id
   subnet_ids   = module.vpc.private_subnet_ids
 }
+
