@@ -35,6 +35,4 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-      - name: Terraform Apply
-        if: github.event.inputs.auto_apply == 'true'
-        run: terraform apply -auto-approve
+      
