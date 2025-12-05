@@ -4,19 +4,23 @@ on:
   workflow_dispatch:
     inputs:
       auto_apply:
-        description: "Apply changes automatically?"
+        description: "Run terraform apply as part of this workflow?"
         required: true
         default: "false"
         type: choice
-        options: ["false", "true"]
+        options:
+          - "false"
+          - "true"
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     env:
-      # Terraform Cloud token – from GitHub secret
-      TF_TOKEN_app_terraform_io: ${{ secrets.TFC_API_TOKEN }}
+      # Terraform Cloud token from GitHub Secrets
+      # Secret name: TF_CLOUD_TOKEN
+      # This MUST be exposed as TF_TOKEN_app_terraform_io for Terraform CLI
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -36,4 +40,3 @@ jobs:
       - name: Terraform Apply
         if: github.event.inputs.auto_apply == 'true'
         run: terraform apply -auto-approve tfplan
-
