@@ -1,3 +1,10 @@
+# modules/vpc/main.tf
+
+# Get available AZs in the current region
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
 resource "aws_vpc" "this" {
   cidr_block           = var.cidr_block
   enable_dns_support   = true
@@ -8,11 +15,12 @@ resource "aws_vpc" "this" {
   }
 }
 
-# Two public + two private subnets (simple POC)
+# Two public subnets in two different AZs
 resource "aws_subnet" "public" {
   count                   = 2
   vpc_id                  = aws_vpc.this.id
   cidr_block              = cidrsubnet(var.cidr_block, 4, count.index)
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
   map_public_ip_on_launch = true
 
   tags = {
@@ -20,10 +28,12 @@ resource "aws_subnet" "public" {
   }
 }
 
+# Two private subnets in two different AZs
 resource "aws_subnet" "private" {
-  count      = 2
-  vpc_id     = aws_vpc.this.id
-  cidr_block = cidrsubnet(var.cidr_block, 4, count.index + 2)
+  count             = 2
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = cidrsubnet(var.cidr_block, 4, count.index + 2)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
     Name = "${var.name}-private-${count.index}"
