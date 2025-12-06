@@ -1,6 +1,6 @@
-# modules/vpc/main.tf
+// modules/vpc/main.tf
 
-# Get available AZs in the current region
+// Get available AZs in the current region
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -12,6 +12,29 @@ resource "aws_vpc" "this" {
 
   tags = {
     Name = "${var.name}-vpc"
+  }
+}
+
+# Internet gateway for public subnets
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
+
+  tags = {
+    Name = "${var.name}-igw"
+  }
+}
+
+# Public route table with a default route to the internet
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.this.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.this.id
+  }
+
+  tags = {
+    Name = "${var.name}-public-rt"
   }
 }
 
@@ -28,7 +51,14 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Two private subnets in two different AZs
+# Associate public subnets with the public route table
+resource "aws_route_table_association" "public" {
+  count          = length(aws_subnet.public)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+}
+
+# Two private subnets in two different AZs (not used for nodes in this POC)
 resource "aws_subnet" "private" {
   count             = 2
   vpc_id            = aws_vpc.this.id
